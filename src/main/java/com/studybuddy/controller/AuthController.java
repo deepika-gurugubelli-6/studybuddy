@@ -6,6 +6,7 @@ import com.studybuddy.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.studybuddy.dto.LoginRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,6 +18,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         AuthResponse response = userService.register(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        AuthResponse response = userService.login(request);
         return ResponseEntity.ok(response);
     }
 }
