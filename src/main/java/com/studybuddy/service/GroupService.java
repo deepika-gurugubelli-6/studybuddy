@@ -5,9 +5,15 @@ import com.studybuddy.entity.Group;
 import com.studybuddy.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.studybuddy.dto.JoinGroupRequest;
+import com.studybuddy.entity.GroupMember;
+import com.studybuddy.entity.MemberStatus;
+import com.studybuddy.repository.GroupMemberRepository;
 
 @Service
 public class GroupService {
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
 
     @Autowired
     private GroupRepository groupRepository;
@@ -26,5 +32,33 @@ public class GroupService {
         group.setStatus("OPEN");
 
         return groupRepository.save(group);
+    }
+
+    public String requestToJoin(JoinGroupRequest request) {
+
+        // Check if group exists
+        Group group = groupRepository.findById(request.getGroupId())
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        // Check if already requested or joined
+        if (groupMemberRepository.existsByGroupIdAndUserId(request.getGroupId(), request.getUserId())) {
+            throw new RuntimeException("You have already requested or joined this group");
+        }
+
+        // Check if group is full
+        if (group.getCurrentMembers() >= group.getMaxMembers()) {
+            throw new RuntimeException("Group is already full");
+        }
+
+        // Create join request
+        GroupMember member = new GroupMember();
+        member.setGroupId(request.getGroupId());
+        member.setUserId(request.getUserId());
+        member.setRole("MEMBER");
+        member.setStatus(MemberStatus.PENDING);
+
+        groupMemberRepository.save(member);
+
+        return "Join request sent successfully";
     }
 }

@@ -6,6 +6,7 @@ import com.studybuddy.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.studybuddy.dto.JoinGroupRequest;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -18,5 +19,11 @@ public class GroupController {
     public ResponseEntity<Group> createGroup(@RequestBody CreateGroupRequest request) {
         Group createdGroup = groupService.createGroup(request);
         return ResponseEntity.ok(createdGroup);
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<String> requestToJoin(@RequestBody JoinGroupRequest request) {
+        String message = groupService.requestToJoin(request);
+        return ResponseEntity.ok(message);
     }
 }
