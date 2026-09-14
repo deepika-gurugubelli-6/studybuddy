@@ -6,6 +6,8 @@ import com.studybuddy.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.studybuddy.dto.MarkAttendanceRequest;
+import com.studybuddy.entity.SessionAttendance;
 
 import java.util.List;
 
@@ -26,5 +28,17 @@ public class SessionController {
     public ResponseEntity<List<StudySession>> getSessionsByGroup(@PathVariable Long groupId) {
         List<StudySession> sessions = sessionService.getSessionsByGroup(groupId);
         return ResponseEntity.ok(sessions);
+    }
+
+    @PostMapping("/attendance")
+    public ResponseEntity<String> markAttendance(@RequestBody MarkAttendanceRequest request) {
+        String message = sessionService.markAttendance(request);
+        return ResponseEntity.ok(message);
+    }
+
+    @GetMapping("/{sessionId}/attendance")
+    public ResponseEntity<List<SessionAttendance>> getAttendance(@PathVariable Long sessionId) {
+        List<SessionAttendance> attendanceList = sessionService.getAttendanceBySession(sessionId);
+        return ResponseEntity.ok(attendanceList);
     }
 }

@@ -7,11 +7,16 @@ import com.studybuddy.repository.GroupRepository;
 import com.studybuddy.repository.StudySessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.studybuddy.dto.MarkAttendanceRequest;
+import com.studybuddy.entity.SessionAttendance;
+import com.studybuddy.repository.SessionAttendanceRepository;
 
 import java.util.List;
 
 @Service
 public class SessionService {
+    @Autowired
+    private SessionAttendanceRepository attendanceRepository;
 
     @Autowired
     private StudySessionRepository sessionRepository;
@@ -41,5 +46,25 @@ public class SessionService {
 
     public List<StudySession> getSessionsByGroup(Long groupId) {
         return sessionRepository.findByGroupId(groupId);
+    }
+
+    public String markAttendance(MarkAttendanceRequest request) {
+
+        // Check if already marked
+        if (attendanceRepository.existsBySessionIdAndUserId(request.getSessionId(), request.getUserId())) {
+            throw new RuntimeException("Attendance already marked for this session");
+        }
+
+        SessionAttendance attendance = new SessionAttendance();
+        attendance.setSessionId(request.getSessionId());
+        attendance.setUserId(request.getUserId());
+        attendance.setStatus(request.getStatus().toUpperCase());
+
+        attendanceRepository.save(attendance);
+
+        return "Attendance marked successfully as " + request.getStatus().toUpperCase();
+    }
+    public List<SessionAttendance> getAttendanceBySession(Long sessionId) {
+        return attendanceRepository.findBySessionId(sessionId);
     }
 }
