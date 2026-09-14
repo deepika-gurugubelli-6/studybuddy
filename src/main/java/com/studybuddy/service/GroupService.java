@@ -120,4 +120,22 @@ public class GroupService {
                 .filter(g -> g != null)
                 .toList();
     }
+    public List<Group> getSuggestedGroups(Long userId, String subject) {
+
+        // Get all groups of the given subject that are still OPEN
+        List<Group> allGroups = groupRepository.findBySubjectIgnoreCase(subject);
+
+        // Get all group IDs that the user has already requested or joined
+        List<GroupMember> userMemberships = groupMemberRepository.findByUserId(userId);
+        List<Long> joinedOrRequestedGroupIds = userMemberships.stream()
+                .map(GroupMember::getGroupId)
+                .toList();
+
+        // Filter: only OPEN groups + user has not joined/requested
+        return allGroups.stream()
+                .filter(group -> "OPEN".equalsIgnoreCase(group.getStatus()))
+                .filter(group -> !joinedOrRequestedGroupIds.contains(group.getId()))
+                .filter(group -> group.getCurrentMembers() < group.getMaxMembers())
+                .toList();
+    }
 }

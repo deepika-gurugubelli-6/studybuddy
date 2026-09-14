@@ -39,4 +39,13 @@ public class GroupController {
         List<Group> groups = groupService.getMyGroups(userId);
         return ResponseEntity.ok(groups);
     }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<Group>> getSuggestedGroups(
+            @RequestParam Long userId,
+            @RequestParam String subject) {
+
+        List<Group> suggestions = groupService.getSuggestedGroups(userId, subject);
+        return ResponseEntity.ok(suggestions);
+    }
 }
