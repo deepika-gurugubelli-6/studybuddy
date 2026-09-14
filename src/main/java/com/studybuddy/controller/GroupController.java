@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.studybuddy.dto.JoinGroupRequest;
+import com.studybuddy.dto.HandleJoinRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -25,5 +27,16 @@ public class GroupController {
     public ResponseEntity<String> requestToJoin(@RequestBody JoinGroupRequest request) {
         String message = groupService.requestToJoin(request);
         return ResponseEntity.ok(message);
+    }
+    @PostMapping("/handle-request")
+    public ResponseEntity<String> handleJoinRequest(@RequestBody HandleJoinRequest request) {
+        String message = groupService.handleJoinRequest(request);
+        return ResponseEntity.ok(message);
+    }
+
+    @GetMapping("/my-groups/{userId}")
+    public ResponseEntity<List<Group>> getMyGroups(@PathVariable Long userId) {
+        List<Group> groups = groupService.getMyGroups(userId);
+        return ResponseEntity.ok(groups);
     }
 }

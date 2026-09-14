@@ -9,6 +9,8 @@ import com.studybuddy.dto.JoinGroupRequest;
 import com.studybuddy.entity.GroupMember;
 import com.studybuddy.entity.MemberStatus;
 import com.studybuddy.repository.GroupMemberRepository;
+import com.studybuddy.dto.HandleJoinRequest;
+import java.util.List;
 
 @Service
 public class GroupService {
@@ -60,5 +62,62 @@ public class GroupService {
         groupMemberRepository.save(member);
 
         return "Join request sent successfully";
+    }
+
+    public String handleJoinRequest(HandleJoinRequest request) {
+
+        // 1. Check if group exists
+        Group group = groupRepository.findById(request.getGroupId())
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+
+        // 2. Check if the person is the admin (creator)
+        if (!group.getCreatedBy().equals(request.getAdminId())) {
+            throw new RuntimeException("Only group admin can accept or reject requests");
+        }
+
+        // 3. Find the join request
+        GroupMember member = groupMemberRepository
+                .findByGroupIdAndUserId(request.getGroupId(), request.getUserId())
+                .orElseThrow(() -> new RuntimeException("Join request not found"));
+
+        if (member.getStatus() != MemberStatus.PENDING) {
+            throw new RuntimeException("This request is already handled");
+        }
+
+        // 4. Handle Accept
+        if (request.getStatus() == MemberStatus.ACCEPTED) {
+
+            if (group.getCurrentMembers() >= group.getMaxMembers()) {
+                throw new RuntimeException("Group is already full");
+            }
+
+            member.setStatus(MemberStatus.ACCEPTED);
+            group.setCurrentMembers(group.getCurrentMembers() + 1);
+
+            if (group.getCurrentMembers() >= group.getMaxMembers()) {
+                group.setStatus("FULL");
+            }
+
+            groupRepository.save(group);
+        }
+        // 5. Handle Reject
+        else if (request.getStatus() == MemberStatus.REJECTED) {
+            member.setStatus(MemberStatus.REJECTED);
+        } else {
+            throw new RuntimeException("Invalid status. Use ACCEPTED or REJECTED");
+        }
+
+        groupMemberRepository.save(member);
+        return "Request " + request.getStatus().name().toLowerCase() + " successfully";
+    }
+
+    public List<Group> getMyGroups(Long userId) {
+        List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
+
+        return memberships.stream()
+                .filter(m -> m.getStatus() == MemberStatus.ACCEPTED)
+                .map(m -> groupRepository.findById(m.getGroupId()).orElse(null))
+                .filter(g -> g != null)
+                .toList();
     }
 }
